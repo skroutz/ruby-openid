@@ -122,7 +122,7 @@ module OpenID
         end
 
         if @assoc
-          message.set_arg(OPENID_NS, 'assoc_handle', @assoc.handle)
+          #message.set_arg(OPENID_NS, 'assoc_handle', @assoc.handle)
           assoc_log_msg = "with assocication #{@assoc.handle}"
         else
           assoc_log_msg = 'using stateless mode.'
