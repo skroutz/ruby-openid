@@ -45,20 +45,22 @@ module OpenID
 
     attr_accessor :server_url, :type_uris, :local_id, :used_yadis
 
-    def initialize
-      @claimed_id = nil
-      @server_url = nil
-      @type_uris = []
-      @local_id = nil
-      @canonical_id = nil
-      @used_yadis = false # whether this came from an XRDS
-      @display_identifier = nil
+    def initialize(claimed_id: nil, server_url: nil, type_uris: [],
+                   local_id: nil, canonical_id: nil, used_yadis: false,
+                   display_identifier: nil)
+      @claimed_id = claimed_id
+      @server_url = server_url
+      @type_uris = type_uris
+      @local_id = local_id
+      @canonical_id = canonical_id
+      @used_yadis = used_yadis # whether this came from an XRDS
+      @display_identifier = display_identifier
     end
 
     def display_identifier
       return @display_identifier if @display_identifier
 
-      return @claimed_id if @claimed_id.nil? 
+      return @claimed_id if @claimed_id.nil?
 
       begin
         parsed_identifier = URI.parse(@claimed_id)
@@ -232,11 +234,31 @@ module OpenID
       return service
     end
 
+    def self.from_session(endpoint)
+      init_params = endpoint.symbolize_keys.slice(:claimed_id, :server_url,
+        :type_uris, :local_id, :canonical_id, :used_yadis,
+        :display_identifier)
+
+      new(init_params)
+    end
+
     def to_s
       return sprintf("<%s server_url=%s claimed_id=%s " +
                      "local_id=%s canonical_id=%s used_yadis=%s>",
                      self.class, @server_url, @claimed_id,
                      @local_id, @canonical_id, @used_yadis)
+    end
+
+    def to_session
+      {
+        'canonical_id' => @canonical_id,
+        'claimed_id' => @claimed_id,
+        'display_identifier' => @display_identifier,
+        'local_id' => @local_id,
+        'server_url' => @server_url,
+        'type_uris' => @type_uris,
+        'used_yadis' => @used_yadis
+      }
     end
   end
 

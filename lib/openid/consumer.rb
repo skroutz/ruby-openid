@@ -297,11 +297,17 @@ module OpenID
     protected
 
     def session_get(name)
-      @session[session_key(name)]
+      endpoint = @session[session_key(name)]
+      return unless endpoint
+
+      # This is here for compatibility with unmarshalled objects.
+      return endpoint unless endpoint.is_a? Hash
+
+      OpenID::OpenIDServiceEndpoint.from_session(endpoint)
     end
 
     def session_set(name, val)
-      @session[session_key(name)] = val
+      @session[session_key(name)] = val.to_session
     end
 
     def session_key(suffix)
