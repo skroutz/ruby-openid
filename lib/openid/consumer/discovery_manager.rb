@@ -28,6 +28,22 @@ module OpenID
       def empty?
         @services.empty?
       end
+
+      def to_session
+        {
+          'starting_url' => @starting_url,
+          'yadis_url' => @yadis_url,
+          'services' => @services.map(&:to_session)
+        }
+      end
+
+      def self.from_session(manager)
+        services = manager['services'].map do |service|
+          OpenID::OpenIDServiceEndpoint.from_session(service)
+        end
+
+        new(manager['starting_url'], manager['yadis_url'], services)
+      end
     end
 
     # Manages calling discovery and tracking which endpoints have
@@ -107,12 +123,23 @@ module OpenID
         'OpenID::Consumer::DiscoveredServices::' + @session_key_suffix
       end
 
+      # Stores the manager in session in the form of a hash.
+      # Storing in a simple hash makes the gem independent from serialization
+      # strategies.
       def store(manager)
-        @session[session_key] = manager
+        @session[session_key] = manager.to_session
       end
 
+      # Reads in the manager hash from session and reconstructs the manager
+      # object.
       def load
-        @session[session_key]
+        manager = @session[session_key]
+        return unless manager
+
+        # This is here for compatibility with unmarshalled objects.
+        return manager unless manager.is_a? Hash
+
+        DiscoveredServices.from_session(manager)
       end
 
       def destroy!
