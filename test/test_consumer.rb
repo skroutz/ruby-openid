@@ -1,6 +1,7 @@
 require "openid/consumer"
 require "test/unit"
 require "testutil"
+require 'active_support/core_ext/hash'
 
 module OpenID
   class Consumer
